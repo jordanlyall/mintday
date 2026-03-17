@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mint.day — live feed</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+    :root {
+      --bg: #0d0a07;
+      --surface: #151110;
+      --surface-raised: #1c1714;
+      --border: #2a2320;
+      --border-bright: #352d28;
+      --text: #ede8e3;
+      --text-secondary: #a39890;
+      --text-muted: #6e6259;
+      --text-dim: #3d3530;
+      --green: #22c55e;
+      --blue: #60a5fa;
+      --purple: #a78bfa;
+      --orange: #fb923c;
+      --cyan: #22d3ee;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 0 28px; }
+
+    nav {
+      padding: 28px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.03em;
+    }
+
+    .logo .dot { color: var(--green); }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text-secondary); }
+
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--border-bright);
+      color: var(--text-muted);
+      background: var(--surface);
+    }
+
+    .page-header { padding: 48px 0 32px; }
+
+    .page-header h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .page-header p {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 8px;
+    }
+
+    .chain-tabs {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 16px;
+      background: var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .chain-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 8px 16px;
+      background: var(--surface);
+      color: var(--text-muted);
+      border: none;
+      cursor: pointer;
+      flex: 1;
+      text-align: center;
+      transition: all 0.15s;
+    }
+
+    .chain-tab:hover { color: var(--text-secondary); }
+
+    .chain-tab.active {
+      background: var(--surface-raised);
+      color: var(--text);
+    }
+
+    .feed-list {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 40px;
+    }
+
+    .feed-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .feed-item:last-child { border-bottom: none; }
+    .feed-item:hover { background: var(--surface-raised); }
+
+    .feed-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .feed-thumb img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .feed-info { flex: 1; min-width: 0; }
+
+    .feed-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .feed-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-top: 4px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .feed-type {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .type-Identity { color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+    .type-Attestation { color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+    .type-Credential { color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+    .type-Receipt { color: var(--orange); border: 1px solid rgba(251,146,60,0.2); }
+    .type-Pass { color: var(--cyan); border: 1px solid rgba(34,211,238,0.2); }
+
+    .feed-soulbound {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: var(--green);
+      opacity: 0.5;
+    }
+
+    .feed-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .feed-status {
+      padding: 48px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .feed-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <a href="index.html" class="logo">mint<span class="dot">.</span>day</a>
+      <div class="nav-links">
+        <a href="feed.html">feed</a>
+        <span class="badge" style="font-size:11px;padding:4px 8px;border-color:rgba(96,165,250,0.25);color:#60a5fa;">Base</span>
+        <a href="https://github.com/jordanlyall/agent-mint" target="_blank" title="GitHub"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a>
+        <a href="https://x.com/jordanlyall" target="_blank" title="X"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      </div>
+    </nav>
+
+    <div class="page-header">
+      <h1>Live mints</h1>
+      <p>Every token minted through mint.day, on-chain.</p>
+    </div>
+
+    <div class="chain-tabs">
+      <button class="chain-tab active" id="tab-mainnet" onclick="switchChain('mainnet')">Base Mainnet</button>
+      <button class="chain-tab" id="tab-sepolia" onclick="switchChain('sepolia')">Base Sepolia</button>
+    </div>
+
+    <div class="feed-list" id="feed-list">
+      <div class="feed-status">Loading on-chain data...</div>
+    </div>
+  </div>
+
+  <script>
+    const TYPE_NAMES = ["Identity", "Attestation", "Credential", "Receipt", "Pass"];
+    const CHAINS = {
+      sepolia: {
+        rpc: "https://sepolia.base.org",
+        contract: "0xa52450397f312c256Bd68B202C0CF90387Ea0E67",
+        explorer: "https://sepolia.basescan.org",
+        fromBlock: 38960000,
+      },
+      mainnet: {
+        rpc: "https://mainnet.base.org",
+        contract: "0xbf12d372444dcf69df9316d961439f6b5919e8d0",
+        explorer: "https://basescan.org",
+        fromBlock: 28000000,
+      }
+    };
+
+    // Minted(uint256 indexed tokenId, address indexed to, uint8 tokenType, bool soulbound, string tokenURI)
+    const MINTED_SIG = "0xcaf90953c630066d72a36149d0170187181e7b386b987ac551e117b7b0ff06c4";
+
+    function escapeHtml(str) {
+      const el = document.createElement("span");
+      el.textContent = str;
+      return el.innerHTML;
+    }
+
+    function decodeMintedLog(log) {
+      const tokenId = parseInt(log.topics[1], 16);
+      const to = "0x" + log.topics[2].slice(26);
+      const data = log.data.slice(2);
+      const tokenType = parseInt(data.slice(0, 64), 16);
+      const soulbound = parseInt(data.slice(64, 128), 16) === 1;
+
+      const strOffset = parseInt(data.slice(128, 192), 16) * 2;
+      const strLen = parseInt(data.slice(strOffset, strOffset + 64), 16);
+      const strHex = data.slice(strOffset + 64, strOffset + 64 + strLen * 2);
+      let tokenURI = "";
+      try { tokenURI = new TextDecoder().decode(new Uint8Array(strHex.match(/.{2}/g).map(b => parseInt(b, 16)))); } catch {}
+
+      let metadata = {};
+      if (tokenURI.startsWith("data:application/json;base64,")) {
+        try { metadata = JSON.parse(atob(tokenURI.replace("data:application/json;base64,", ""))); } catch {}
+      }
+
+      return { tokenId, to, tokenType, soulbound, metadata, blockNumber: parseInt(log.blockNumber, 16), txHash: log.transactionHash };
+    }
+
+    function timeAgo(blockNum, latestBlock) {
+      const seconds = (latestBlock - blockNum) * 2;
+      if (seconds < 60) return seconds + "s ago";
+      if (seconds < 3600) return Math.floor(seconds / 60) + "m ago";
+      if (seconds < 86400) return Math.floor(seconds / 3600) + "h ago";
+      return Math.floor(seconds / 86400) + "d ago";
+    }
+
+    async function rpc(url, method, params) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params })
+      });
+      return (await res.json()).result;
+    }
+
+    async function loadFeed(chain) {
+      const list = document.getElementById("feed-list");
+      list.textContent = "";
+      const status = document.createElement("div");
+      status.className = "feed-status";
+      status.textContent = "Loading on-chain data...";
+      list.appendChild(status);
+
+      try {
+        const c = CHAINS[chain];
+        const latest = await rpc(c.rpc, "eth_blockNumber", []);
+        const latestBlock = parseInt(latest, 16);
+        const from = "0x" + Math.max(latestBlock - 9900, c.fromBlock).toString(16);
+
+        const logs = await rpc(c.rpc, "eth_getLogs", [{
+          address: c.contract, fromBlock: from, toBlock: "latest", topics: [MINTED_SIG]
+        }]) || [];
+
+        list.textContent = "";
+
+        if (logs.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "feed-status";
+          empty.textContent = "No mints yet. Be the first.";
+          list.appendChild(empty);
+          return;
+        }
+
+        const items = logs.map(decodeMintedLog).reverse();
+
+        const count = document.createElement("div");
+        count.className = "feed-count";
+        count.textContent = items.length + " token" + (items.length !== 1 ? "s" : "") + " minted";
+        list.appendChild(count);
+
+        items.forEach((item, i) => {
+          const typeName = TYPE_NAMES[item.tokenType] || "Unknown";
+          const name = item.metadata.name || "mint.day token #" + item.tokenId;
+          const image = item.metadata.image || "";
+
+          const a = document.createElement("a");
+          a.className = "feed-item";
+          a.href = c.explorer + "/tx/" + item.txHash;
+          a.target = "_blank";
+          a.style.animationName = "fadeIn";
+          a.style.animationDuration = "0.3s";
+          a.style.animationDelay = (i * 0.05) + "s";
+          a.style.animationFillMode = "both";
+
+          const thumb = document.createElement("div");
+          thumb.className = "feed-thumb";
+          if (image) {
+            const img = document.createElement("img");
+            img.src = image;
+            img.alt = "";
+            img.loading = "lazy";
+            thumb.appendChild(img);
+          }
+          a.appendChild(thumb);
+
+          const info = document.createElement("div");
+          info.className = "feed-info";
+          const nameEl = document.createElement("div");
+          nameEl.className = "feed-name";
+          nameEl.textContent = name;
+          info.appendChild(nameEl);
+
+          const meta = document.createElement("div");
+          meta.className = "feed-meta";
+          const typeEl = document.createElement("span");
+          typeEl.className = "feed-type type-" + typeName;
+          typeEl.textContent = typeName;
+          meta.appendChild(typeEl);
+          if (item.soulbound) {
+            const sb = document.createElement("span");
+            sb.className = "feed-soulbound";
+            sb.textContent = "soulbound";
+            meta.appendChild(sb);
+          }
+          const idEl = document.createElement("span");
+          idEl.textContent = "#" + item.tokenId;
+          meta.appendChild(idEl);
+          info.appendChild(meta);
+          a.appendChild(info);
+
+          const time = document.createElement("div");
+          time.className = "feed-time";
+          time.textContent = timeAgo(item.blockNumber, latestBlock);
+          a.appendChild(time);
+
+          list.appendChild(a);
+        });
+      } catch (err) {
+        list.textContent = "";
+        const fail = document.createElement("div");
+        fail.className = "feed-status";
+        fail.textContent = "Failed to load. Try refreshing.";
+        list.appendChild(fail);
+        console.error(err);
+      }
+    }
+
+    function switchChain(chain) {
+      document.getElementById("tab-sepolia").classList.toggle("active", chain === "sepolia");
+      document.getElementById("tab-mainnet").classList.toggle("active", chain === "mainnet");
+      loadFeed(chain);
+    }
+
+    loadFeed("mainnet");
+  </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "mint.day",
+  "description": "Agent-native minting on Base. One tool call from intent to on-chain token.",
+  "url": "https://mint.day",
+  "version": "0.1.0",
+  "capabilities": ["mint", "mint_status", "mint_check"],
+  "protocols": ["mcp"],
+  "authentication": {
+    "schemes": ["none"]
+  },
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"],
+  "skills": [
+    {
+      "id": "mint",
+      "name": "Mint Token",
+      "description": "Create a permanent on-chain record: attestation, credential, identity, receipt, or pass."
+    },
+    {
+      "id": "mint_check",
+      "name": "Check Tokens",
+      "description": "Look up all mint.day tokens held by an address."
+    }
+  ]
+}
