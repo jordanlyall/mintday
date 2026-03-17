@@ -277,9 +277,9 @@
     .copy-setup-btn {
       font-family: 'JetBrains Mono', monospace;
       font-size: 13px;
-      color: #fff;
-      background: var(--green);
-      border: none;
+      color: var(--green);
+      background: transparent;
+      border: 1.5px solid var(--green);
       border-radius: 8px;
       padding: 12px 24px;
       cursor: pointer;
@@ -287,7 +287,7 @@
       font-weight: 600;
     }
 
-    .copy-setup-btn:hover { background: #26a46d; box-shadow: 0 4px 16px rgba(45, 184, 122, 0.25); }
+    .copy-setup-btn:hover { background: var(--green-dim); box-shadow: 0 4px 16px rgba(45, 184, 122, 0.15); }
 
     .github-btn {
       font-family: 'JetBrains Mono', monospace;
@@ -376,8 +376,9 @@
       <h1>Free <span class="green">NFT minting</span> for agents. On Base.</h1>
       <p class="subtitle">No wallet. No gas. No code. Tell your agent what to mint and it lands on-chain in seconds. Identity, credentials, proof of work. <strong>Works for humans too.</strong></p>
       <div class="install-row hero-install">
-        <div class="npx-block">
+        <div class="npx-block" style="cursor:pointer;" onclick="copyNpx(this)" title="Copy">
           <code><span class="prompt">$</span> npx mint-day</code>
+          <svg id="npx-copy-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim);margin-left:4px;vertical-align:-1px;flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
         </div>
         <button class="copy-setup-btn" onclick="copySetup(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy setup for your agent</button>
         <a href="https://github.com/jordanlyall/mintday" target="_blank" class="github-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>Docs & Source</a>
@@ -523,10 +524,19 @@
 
     var AGENT_SETUP = 'Install mint.day for me.\n\nmint.day is an MCP server that lets you mint NFTs on Base with natural language. Identity, attestations, credentials, receipts, access passes, and visual tokens with images.\n\nAdd this MCP config:\n\n{\n  "mcpServers": {\n    "mint-day": {\n      "command": "npx",\n      "args": ["mint-day"]\n    }\n  }\n}\n\nThat\'s it. No API keys. No wallet. Gas is sponsored. Just tell me what to mint.';
 
+    function copyNpx(el) {
+      navigator.clipboard.writeText('npx mint-day').then(function() {
+        var icon = el.querySelector('svg');
+        if (icon) icon.style.color = 'var(--green)';
+        setTimeout(function() { if (icon) icon.style.color = 'var(--text-dim)'; }, 1500);
+      });
+    }
+
     function copySetup(btn) {
       navigator.clipboard.writeText(AGENT_SETUP).then(function() {
+        var orig = btn.innerHTML;
         btn.textContent = 'Copied!';
-        setTimeout(function() { btn.textContent = 'Copy setup for your agent'; }, 2000);
+        setTimeout(function() { btn.innerHTML = orig; }, 2000);
       });
     }
   </script>
