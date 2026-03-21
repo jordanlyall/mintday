@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { ethers } from "ethers";
-import { captureError } from "./lib/sentry";
+import { captureError } from "./lib/sentry.js";
 
 const RPC_URL = process.env.BASE_RPC_URL || "https://base-mainnet.public.blastapi.io";
 const CONTRACT = process.env.MINT_FACTORY_ADDRESS || "0x12a1c11a0b2860f64e7d8df20989f97d40de7f2c";

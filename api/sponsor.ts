@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { ethers } from "ethers";
-import { captureError } from "./lib/sentry";
+import { captureError } from "./lib/sentry.js";
 
 const PRIVATE_KEY = process.env.SPONSORED_KEY;
 const RPC_URL = process.env.BASE_RPC_URL || "https://mainnet.base.org";
