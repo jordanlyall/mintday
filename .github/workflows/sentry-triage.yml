@@ -4,6 +4,12 @@ on:
   repository_dispatch:
     types: [sentry_issue]
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
 jobs:
   triage:
     runs-on: ubuntu-latest
