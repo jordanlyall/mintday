@@ -1,0 +1,63 @@
+name: Sentry Auto-Triage
+
+on:
+  repository_dispatch:
+    types: [sentry_issue]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      SENTRY_TITLE: ${{ github.event.client_payload.title }}
+      SENTRY_CULPRIT: ${{ github.event.client_payload.culprit }}
+      SENTRY_LEVEL: ${{ github.event.client_payload.level }}
+      SENTRY_FIRST_SEEN: ${{ github.event.client_payload.first_seen }}
+      SENTRY_COUNT: ${{ github.event.client_payload.count }}
+      SENTRY_URL: ${{ github.event.client_payload.url }}
+      SENTRY_SHORT_ID: ${{ github.event.client_payload.short_id }}
+      SENTRY_TAGS: ${{ toJSON(github.event.client_payload.tags) }}
+      SENTRY_METADATA: ${{ toJSON(github.event.client_payload.metadata) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Triage with Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            A Sentry error was detected in the mint.day codebase. Triage it.
+
+            ## Error Details
+            - **Title**: ${SENTRY_TITLE}
+            - **Culprit**: ${SENTRY_CULPRIT}
+            - **Level**: ${SENTRY_LEVEL}
+            - **First seen**: ${SENTRY_FIRST_SEEN}
+            - **Count**: ${SENTRY_COUNT}
+            - **Sentry URL**: ${SENTRY_URL}
+            - **Tags**: ${SENTRY_TAGS}
+            - **Metadata**: ${SENTRY_METADATA}
+
+            ## Your job
+
+            1. Read the relevant source files in `api/` and `src/` to understand the error.
+            2. Determine: is this a real bug, or noise (transient network error, user input, rate limit)?
+
+            **If real bug:**
+            - Create a new branch `fix/sentry-${SENTRY_SHORT_ID}`
+            - Write the fix
+            - Commit and push
+            - Open a PR with the Sentry link in the description
+
+            **If noise:**
+            - Create an issue titled "Noise" with label "noise" and explain why it's not actionable
+            - Reference the Sentry short ID in the issue body
+
+            ## Context
+            - This is a Vercel serverless project (api/ directory has the functions)
+            - The MCP server is in src/
+            - Contract ABIs and addresses are in the source files
+            - Base mainnet RPC can be flaky — transient RPC errors are noise

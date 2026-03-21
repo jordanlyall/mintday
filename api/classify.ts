@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { captureError } from "./lib/sentry";
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_MODEL = "llama-3.3-70b-versatile";
@@ -92,6 +93,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const parsed = JSON.parse(content);
     return res.status(200).json(parsed);
   } catch (err) {
+    captureError(err, { route: "classify" });
     return res.status(500).json({ error: "Classification failed", detail: String(err) });
   }
 }
