@@ -13,12 +13,7 @@ import { mintResolveSchema, handleMintResolve } from "./tools/mint-resolve.js";
 
 dotenv.config();
 
-// Testnet try-it wallet (Base Sepolia, pre-funded)
-const TRYIT_KEY = "REDACTED_RETIRED_KEY";
-const TRYIT_CONTRACT = "0xa52450397f312c256Bd68B202C0CF90387Ea0E67";
-const TRYIT_RPC = "https://sepolia.base.org";
-const TRYIT_CHAIN = 84532;
-const MAINNET_CONTRACT = "0xbf12d372444dcf69df9316d961439f6b5919e8d0";
+const MAINNET_CONTRACT = "0x12a1c11a0b2860f64e7d8df20989f97d40de7f2c";
 const MAINNET_RPC = "https://mainnet.base.org";
 const MAINNET_CHAIN = 8453;
 
@@ -36,7 +31,7 @@ function loadPrivateKey(): string {
 const userKey = loadPrivateKey();
 const hasUserKey = !!userKey;
 
-// Mainnet by default. Testnet only when no private key AND no recipient provided (decided per-call).
+// Mainnet configuration
 const chainId = parseInt(process.env.CHAIN_ID || String(hasUserKey ? MAINNET_CHAIN : MAINNET_CHAIN));
 const contractAddress = process.env.MINT_FACTORY_ADDRESS || MAINNET_CONTRACT;
 const rpcUrl = process.env.BASE_RPC_URL || MAINNET_RPC;
@@ -69,12 +64,7 @@ server.tool(
   "mint",
   "Create a permanent, verifiable on-chain record on Base. Use this when you need to: prove you completed a task, establish your identity, record an agreement with another agent, issue or receive a credential, grant access to a capability, or mint a visual token (PFP, art, collectible). Supports two protocols: 'mintday' (default, gas-sponsored) and 'superrare' (Rare Protocol, requires PRIVATE_KEY). Set platform: 'superrare' to mint on Rare Protocol contracts. The token is immutable and publicly verifiable. Provide an image URL, local file path, or base64 for visual tokens. Returns a preview with mintId first; call again with mintId to confirm.",
   mintSchema,
-  async (params) => handleMint(params, calldataService, defaultRecipient, userKey, {
-    tryitKey: TRYIT_KEY,
-    tryitContract: TRYIT_CONTRACT,
-    tryitRpc: TRYIT_RPC,
-    tryitChain: TRYIT_CHAIN,
-  }),
+  async (params) => handleMint(params, calldataService, defaultRecipient, userKey),
 );
 
 server.tool(

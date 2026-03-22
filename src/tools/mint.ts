@@ -7,27 +7,27 @@ import { CalldataService } from "../services/calldata.js";
 import { resolveImage } from "../services/image-upload.js";
 import { mintOnRareProtocol } from "../services/rare-protocol.js";
 
-// Intent cache: preview mintId -> frozen intent + platform
-const intentCache = new Map<string, { intent: MintIntent; platform: string; expiresAt: number }>();
+// Intent cache: preview mintId -> frozen intent + platform + options
+const intentCache = new Map<string, { intent: MintIntent; platform: string; selfSign: boolean; expiresAt: number }>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-function cacheMintId(intent: MintIntent, platform: string = "mintday"): string {
+function cacheMintId(intent: MintIntent, platform: string = "mintday", selfSign: boolean = false): string {
   const hash = createHash("sha256")
     .update(JSON.stringify(intent))
     .digest("hex")
     .slice(0, 12);
-  intentCache.set(hash, { intent, platform, expiresAt: Date.now() + CACHE_TTL_MS });
+  intentCache.set(hash, { intent, platform, selfSign, expiresAt: Date.now() + CACHE_TTL_MS });
   return hash;
 }
 
-function getCachedEntry(mintId: string): { intent: MintIntent; platform: string } | null {
+function getCachedEntry(mintId: string): { intent: MintIntent; platform: string; selfSign: boolean } | null {
   const entry = intentCache.get(mintId);
   if (!entry) return null;
   if (Date.now() > entry.expiresAt) {
     intentCache.delete(mintId);
     return null;
   }
-  return { intent: entry.intent, platform: entry.platform };
+  return { intent: entry.intent, platform: entry.platform, selfSign: entry.selfSign };
 }
 
 export const mintSchema = {
@@ -63,20 +63,17 @@ export const mintSchema = {
     .record(z.string(), z.unknown())
     .optional()
     .describe("Additional key-value metadata. Supports strings, arrays, and objects (e.g. capabilities: ['mint'])."),
+  selfSign: z
+    .boolean()
+    .optional()
+    .describe("Sign and submit from your own wallet instead of using sponsored gas. Requires PRIVATE_KEY env var or ~/.mint-day/credentials."),
   platform: z
     .enum(["mintday", "superrare"])
     .optional()
     .describe("Which protocol to mint on. 'mintday' uses the MintFactory contract (default). 'superrare' mints via Rare Protocol on Base."),
 };
 
-interface TryitConfig {
-  tryitKey: string;
-  tryitContract: string;
-  tryitRpc: string;
-  tryitChain: number;
-}
-
-const SPONSOR_URL = process.env.SPONSOR_URL || "https://agent-mint-nine.vercel.app/api/sponsor";
+const SPONSOR_URL = process.env.SPONSOR_URL || "https://www.mint.day/api/sponsor";
 
 async function sponsoredMint(result: { to: string; calldata: string; value: string; estimatedGas: number; tokenType: string; soulbound: boolean; chainId: number }, recipient: string): Promise<Record<string, unknown> | null> {
   try {
@@ -110,8 +107,9 @@ async function sponsoredMint(result: { to: string; calldata: string; value: stri
       explorer: data.explorer,
       sponsored: true,
     };
-  } catch {
-    return null;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { error: `Sponsor request failed: ${message}` };
   }
 }
 
@@ -125,21 +123,15 @@ export async function handleMint(
     animation_url?: string;
     mintId?: string;
     metadata?: Record<string, unknown>;
+    selfSign?: boolean;
     platform?: string;
   },
   calldataService: CalldataService,
   defaultRecipient: string,
   userKey: string = "",
-  tryit: TryitConfig = { tryitKey: "", tryitContract: "", tryitRpc: "", tryitChain: 84532 },
 ) {
-  // Determine mode:
-  // 1. User has private key: mainnet, sign + submit locally
-  // 2. No key but recipient provided: mainnet, sponsored gas via server
-  // 3. No key, no recipient: testnet try-it mode
-  const hasRecipient = !!params.recipient;
-  const isTestnet = !userKey && !hasRecipient;
-  const privateKey = userKey || (isTestnet ? tryit.tryitKey : "");
   // Confirmation path: replay cached intent
+  // Check cache first so we can use cached recipient for mode detection
   if (params.mintId) {
     const entry = getCachedEntry(params.mintId);
     if (!entry) {
@@ -154,6 +146,10 @@ export async function handleMint(
     const cachedPlatform = entry.platform;
     intentCache.delete(params.mintId);
 
+    const hasRecipient = !!cached.recipient;
+    const selfSign = !!entry.selfSign;
+    const privateKey = userKey;
+
     // Rare Protocol path: mint via SuperRare contracts on Base
     if (cachedPlatform === "superrare") {
       if (!privateKey) {
@@ -165,7 +161,7 @@ export async function handleMint(
         };
       }
       try {
-        const rareResult = await mintOnRareProtocol(cached, privateKey, isTestnet);
+        const rareResult = await mintOnRareProtocol(cached, privateKey, false);
         return {
           content: [{
             type: "text" as const,
@@ -183,18 +179,12 @@ export async function handleMint(
       }
     }
 
-    // Use testnet calldataService if in try-it mode
-    let activeCalldataService = calldataService;
-    if (isTestnet) {
-      activeCalldataService = new CalldataService(tryit.tryitRpc, tryit.tryitContract, tryit.tryitChain);
-    }
-    const result = await activeCalldataService.buildMintCalldata(cached);
+    const result = await calldataService.buildMintCalldata(cached);
 
-    // If we have a private key, sign and submit directly
-    if (privateKey) {
+    // Self-sign: user explicitly opted in and has a private key
+    if (selfSign && privateKey) {
       try {
-        const provider = isTestnet ? activeCalldataService.provider : calldataService.provider;
-        const wallet = new ethers.Wallet(privateKey, provider);
+        const wallet = new ethers.Wallet(privateKey, calldataService.provider);
         const tx = await wallet.sendTransaction({
           to: result.to,
           data: result.calldata,
@@ -202,7 +192,10 @@ export async function handleMint(
           gasLimit: result.estimatedGas,
         });
         const receipt = await tx.wait();
-        const response: Record<string, unknown> = {
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({
               status: "minted",
               txHash: receipt!.hash,
               blockNumber: receipt!.blockNumber,
@@ -210,16 +203,9 @@ export async function handleMint(
               tokenType: result.tokenType,
               soulbound: result.soulbound,
               recipient: cached.recipient,
-              chain: isTestnet ? "Base Sepolia (testnet)" : "Base",
-              explorer: `https://${result.chainId === 8453 ? "" : "sepolia."}basescan.org/tx/${receipt!.hash}`,
-            };
-        if (isTestnet) {
-              response.note = "This token was minted on Base Sepolia (testnet). To mint on Base mainnet, save a private key to ~/.mint-day/credentials and restart the MCP server.";
-            }
-        return {
-          content: [{
-            type: "text" as const,
-            text: JSON.stringify(response, null, 2),
+              chain: "Base",
+              explorer: `https://basescan.org/tx/${receipt!.hash}`,
+            }, null, 2),
           }],
         };
       } catch (err: unknown) {
@@ -233,7 +219,16 @@ export async function handleMint(
       }
     }
 
-    // No user key but has recipient: try sponsored gas
+    if (selfSign && !privateKey) {
+      return {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify({ error: "selfSign requires a private key. Set PRIVATE_KEY env var or save to ~/.mint-day/credentials." }, null, 2),
+        }],
+      };
+    }
+
+    // Default: sponsored gas
     if (hasRecipient) {
       const sponsored = await sponsoredMint(result, cached.recipient);
       if (sponsored && !sponsored.error) {
@@ -292,7 +287,6 @@ export async function handleMint(
   }
 
   const recipient = params.recipient || defaultRecipient;
-
   if (!recipient) {
     return {
       content: [{
@@ -400,7 +394,7 @@ export async function handleMint(
 
   // Cache intent and return preview
   const selectedPlatform = params.platform || "mintday";
-  const mintId = cacheMintId(intent, selectedPlatform);
+  const mintId = cacheMintId(intent, selectedPlatform, !!params.selfSign);
 
   const preview: Record<string, unknown> = {
     status: "preview",
@@ -421,11 +415,7 @@ export async function handleMint(
     preview.missingFields = intent.missingFields;
     preview.hint = "Identity tokens (ERC-8004) should include capabilities[], endpoints[], and did. Provide these in metadata for full compliance.";
   }
-  if (isTestnet) {
-    preview.chain = "Base Sepolia (testnet)";
-  } else {
-    preview.chain = "Base";
-  }
+  preview.chain = "Base";
   preview.instruction = "Call mint with mintId to confirm.";
 
   return {
