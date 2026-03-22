@@ -161,7 +161,7 @@ export async function handleMint(
         };
       }
       try {
-        const rareResult = await mintOnRareProtocol(cached, privateKey, false);
+        const rareResult = await mintOnRareProtocol(cached, privateKey);
         return {
           content: [{
             type: "text" as const,

@@ -1,6 +1,6 @@
 import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { base, baseSepolia } from "viem/chains";
+import { base } from "viem/chains";
 import { createRareClient } from "@rareprotocol/rare-cli/client";
 import { encodeMetadata } from "./metadata.js";
 import { MintIntent, TOKEN_TYPE_NAMES } from "../types.js";
@@ -26,9 +26,8 @@ export interface RareMintResult {
 export async function mintOnRareProtocol(
   intent: MintIntent,
   privateKey: string,
-  isTestnet: boolean = false,
 ): Promise<RareMintResult> {
-  const chain = isTestnet ? baseSepolia : base;
+  const chain = base;
   const contractAddress = DEFAULT_RARE_CONTRACT as `0x${string}`;
 
   if (!contractAddress) {
@@ -67,8 +66,6 @@ export async function mintOnRareProtocol(
     to: intent.recipient as `0x${string}`,
   });
 
-  const explorerBase = isTestnet ? "sepolia.basescan.org" : "basescan.org";
-
   return {
     status: "minted",
     txHash: result.txHash,
@@ -78,8 +75,8 @@ export async function mintOnRareProtocol(
     tokenType: TOKEN_TYPE_NAMES[intent.tokenType],
     soulbound: intent.soulbound,
     recipient: intent.recipient,
-    chain: isTestnet ? "Base Sepolia (testnet)" : "Base",
-    explorer: `https://${explorerBase}/tx/${result.txHash}`,
+    chain: "Base",
+    explorer: `https://basescan.org/tx/${result.txHash}`,
     tokenUri,
   };
 }
@@ -88,9 +85,8 @@ export async function deployRareCollection(
   privateKey: string,
   name: string,
   symbol: string,
-  isTestnet: boolean = false,
 ): Promise<{ contract: string; txHash: string }> {
-  const chain = isTestnet ? baseSepolia : base;
+  const chain = base;
   const account = privateKeyToAccount(privateKey as `0x${string}`);
 
   const publicClient = createPublicClient({
