@@ -1,6 +1,6 @@
 import { TokenType, MintIntent, TOKEN_TYPE_NAMES } from "../types.js";
 
-const CLASSIFY_URL = process.env.CLASSIFY_URL || "https://agent-mint-nine.vercel.app/api/classify";
+const CLASSIFY_URL = process.env.CLASSIFY_URL || "https://www.mint.day/api/classify";
 
 function extractAddress(text: string): string | null {
   const match = text.match(/0x[a-fA-F0-9]{40}/);

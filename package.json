@@ -1,6 +1,6 @@
 {
   "name": "mint-day",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Agent-native minting on Base. One tool call, any token type.",
   "main": "dist/index.js",
   "bin": {

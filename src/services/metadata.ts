@@ -119,7 +119,7 @@ export function encodeMetadata(metadata: TokenMetadata): string {
   const enriched = {
     ...metadata,
     attributes,
-    external_url: "https://agent-mint-nine.vercel.app",
+    external_url: "https://mint.day",
   };
 
   const json = JSON.stringify(enriched);
