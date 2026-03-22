@@ -1,6 +1,6 @@
 {
   "name": "mint-day",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Agent-native minting on Base. One tool call, any token type.",
   "main": "dist/index.js",
   "bin": {
@@ -24,9 +24,11 @@
   "type": "module",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
+    "@rareprotocol/rare-cli": "^0.3.0",
     "@sentry/node": "^10.45.0",
     "dotenv": "^17.3.1",
     "ethers": "^6.16.0",
+    "viem": "^2.47.6",
     "zod": "^4.3.6"
   },
   "devDependencies": {

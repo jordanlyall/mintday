@@ -5,28 +5,29 @@ import { TokenType, MintIntent, TokenMetadata, TOKEN_TYPE_NAMES } from "../types
 import { classifyIntent } from "../services/classifier.js";
 import { CalldataService } from "../services/calldata.js";
 import { resolveImage } from "../services/image-upload.js";
+import { mintOnRareProtocol } from "../services/rare-protocol.js";
 
-// Intent cache: preview mintId -> frozen intent
-const intentCache = new Map<string, { intent: MintIntent; expiresAt: number }>();
+// Intent cache: preview mintId -> frozen intent + platform
+const intentCache = new Map<string, { intent: MintIntent; platform: string; expiresAt: number }>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-function cacheMintId(intent: MintIntent): string {
+function cacheMintId(intent: MintIntent, platform: string = "mintday"): string {
   const hash = createHash("sha256")
     .update(JSON.stringify(intent))
     .digest("hex")
     .slice(0, 12);
-  intentCache.set(hash, { intent, expiresAt: Date.now() + CACHE_TTL_MS });
+  intentCache.set(hash, { intent, platform, expiresAt: Date.now() + CACHE_TTL_MS });
   return hash;
 }
 
-function getCachedIntent(mintId: string): MintIntent | null {
+function getCachedEntry(mintId: string): { intent: MintIntent; platform: string } | null {
   const entry = intentCache.get(mintId);
   if (!entry) return null;
   if (Date.now() > entry.expiresAt) {
     intentCache.delete(mintId);
     return null;
   }
-  return entry.intent;
+  return { intent: entry.intent, platform: entry.platform };
 }
 
 export const mintSchema = {
@@ -62,6 +63,10 @@ export const mintSchema = {
     .record(z.string(), z.unknown())
     .optional()
     .describe("Additional key-value metadata. Supports strings, arrays, and objects (e.g. capabilities: ['mint'])."),
+  platform: z
+    .enum(["mintday", "superrare"])
+    .optional()
+    .describe("Which protocol to mint on. 'mintday' uses the MintFactory contract (default). 'superrare' mints via Rare Protocol on Base."),
 };
 
 interface TryitConfig {
@@ -69,6 +74,45 @@ interface TryitConfig {
   tryitContract: string;
   tryitRpc: string;
   tryitChain: number;
+}
+
+const SPONSOR_URL = process.env.SPONSOR_URL || "https://agent-mint-nine.vercel.app/api/sponsor";
+
+async function sponsoredMint(result: { to: string; calldata: string; value: string; estimatedGas: number; tokenType: string; soulbound: boolean; chainId: number }, recipient: string): Promise<Record<string, unknown> | null> {
+  try {
+    const response = await fetch(SPONSOR_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to: result.to,
+        calldata: result.calldata,
+        value: result.value,
+        estimatedGas: result.estimatedGas,
+        recipient,
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json() as { error?: string };
+      return { error: err.error || `Sponsored mint failed (${response.status})` };
+    }
+
+    const data = await response.json() as { txHash: string; blockNumber: number; gasUsed: string; explorer: string };
+    return {
+      status: "minted",
+      txHash: data.txHash,
+      blockNumber: data.blockNumber,
+      gasUsed: data.gasUsed,
+      tokenType: result.tokenType,
+      soulbound: result.soulbound,
+      recipient,
+      chain: "Base",
+      explorer: data.explorer,
+      sponsored: true,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function handleMint(
@@ -81,6 +125,7 @@ export async function handleMint(
     animation_url?: string;
     mintId?: string;
     metadata?: Record<string, unknown>;
+    platform?: string;
   },
   calldataService: CalldataService,
   defaultRecipient: string,
@@ -88,16 +133,16 @@ export async function handleMint(
   tryit: TryitConfig = { tryitKey: "", tryitContract: "", tryitRpc: "", tryitChain: 84532 },
 ) {
   // Determine mode:
-  // 1. User has private key: mainnet, sign + submit
-  // 2. No key but recipient provided: mainnet, return calldata
+  // 1. User has private key: mainnet, sign + submit locally
+  // 2. No key but recipient provided: mainnet, sponsored gas via server
   // 3. No key, no recipient: testnet try-it mode
   const hasRecipient = !!params.recipient;
   const isTestnet = !userKey && !hasRecipient;
   const privateKey = userKey || (isTestnet ? tryit.tryitKey : "");
   // Confirmation path: replay cached intent
   if (params.mintId) {
-    const cached = getCachedIntent(params.mintId);
-    if (!cached) {
+    const entry = getCachedEntry(params.mintId);
+    if (!entry) {
       return {
         content: [{
           type: "text" as const,
@@ -105,7 +150,38 @@ export async function handleMint(
         }],
       };
     }
+    const cached = entry.intent;
+    const cachedPlatform = entry.platform;
     intentCache.delete(params.mintId);
+
+    // Rare Protocol path: mint via SuperRare contracts on Base
+    if (cachedPlatform === "superrare") {
+      if (!privateKey) {
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({ error: "SuperRare minting requires a private key. Save one to ~/.mint-day/credentials." }, null, 2),
+          }],
+        };
+      }
+      try {
+        const rareResult = await mintOnRareProtocol(cached, privateKey, isTestnet);
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify(rareResult, null, 2),
+          }],
+        };
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({ error: `SuperRare mint failed: ${message}` }, null, 2),
+          }],
+        };
+      }
+    }
 
     // Use testnet calldataService if in try-it mode
     let activeCalldataService = calldataService;
@@ -152,6 +228,38 @@ export async function handleMint(
           content: [{
             type: "text" as const,
             text: JSON.stringify({ error: `Transaction failed: ${message}` }, null, 2),
+          }],
+        };
+      }
+    }
+
+    // No user key but has recipient: try sponsored gas
+    if (hasRecipient) {
+      const sponsored = await sponsoredMint(result, cached.recipient);
+      if (sponsored && !sponsored.error) {
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify(sponsored, null, 2),
+          }],
+        };
+      }
+      // Sponsored failed: fall through to calldata
+      if (sponsored?.error) {
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({
+              status: "calldata",
+              note: `Sponsored gas unavailable: ${sponsored.error}. Use this calldata with your own signer.`,
+              to: result.to,
+              calldata: result.calldata,
+              value: result.value,
+              estimatedGas: result.estimatedGas,
+              chainId: result.chainId,
+              tokenType: result.tokenType,
+              soulbound: result.soulbound,
+            }, null, 2),
           }],
         };
       }
@@ -291,12 +399,14 @@ export async function handleMint(
   }
 
   // Cache intent and return preview
-  const mintId = cacheMintId(intent);
+  const selectedPlatform = params.platform || "mintday";
+  const mintId = cacheMintId(intent, selectedPlatform);
 
   const preview: Record<string, unknown> = {
     status: "preview",
     mintId,
-    message: `I'll mint a ${TOKEN_TYPE_NAMES[intent.tokenType]} token${intent.soulbound ? " (soulbound)" : ""} to ${intent.recipient}.`,
+    platform: selectedPlatform,
+    message: `I'll mint a ${TOKEN_TYPE_NAMES[intent.tokenType]} token${intent.soulbound ? " (soulbound)" : ""} to ${intent.recipient} via ${selectedPlatform === "superrare" ? "Rare Protocol (SuperRare)" : "mint.day"}.`,
     tokenType: TOKEN_TYPE_NAMES[intent.tokenType],
     soulbound: intent.soulbound,
     recipient: intent.recipient,

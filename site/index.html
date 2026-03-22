@@ -374,12 +374,18 @@
     <!-- ── Hero ── -->
     <section class="hero">
       <h1>Free <span class="green">NFT minting</span> for agents. On Base.</h1>
-      <p class="subtitle">No wallet. No gas. No code. Tell your agent what to mint and it lands on-chain in seconds. Identity, credentials, proof of work. <strong>Works for humans too.</strong></p>
-      <div class="install-row hero-install">
-        <div class="npx-block" style="cursor:pointer;" onclick="copyNpx(this)" title="Copy">
-          <code><span class="prompt">$</span> npx mint-day</code>
-          <svg id="npx-copy-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-dim);margin-left:4px;vertical-align:-1px;flex-shrink:0"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      <p class="subtitle">No wallet. No gas. No code. Describe what to mint — identity, credentials, art — and it lands on Base in seconds. <strong>Works for humans too.</strong></p>
+      <div style="margin-top:32px;margin-bottom:24px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text-secondary);display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="width:20px;height:20px;border-radius:50%;background:var(--surface-raised);border:1px solid var(--border-bright);display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);flex-shrink:0;">1</span>
+          <span>Add mint.day to your agent</span>
         </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="width:20px;height:20px;border-radius:50%;background:var(--surface-raised);border:1px solid var(--border-bright);display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);flex-shrink:0;">2</span>
+          <span>Tell it what to mint — it lands on Base</span>
+        </div>
+      </div>
+      <div class="install-row hero-install">
         <button class="copy-setup-btn" onclick="copySetup(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy setup for your agent</button>
         <a href="https://github.com/jordanlyall/mintday" target="_blank" class="github-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>Docs & Source</a>
       </div>
@@ -479,6 +485,29 @@
       </div>
     </section>
 
+    <!-- ── Protocols ── -->
+    <section class="usecases" style="margin-top:64px;">
+      <div class="section-label">Two protocols, one tool</div>
+      <div class="usecase-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="usecase">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">mint.day</div>
+          <div class="usecase-scenario">Gas-sponsored minting on the MintFactory contract. Free, zero config. Best for identity, credentials, attestations, and utility tokens.</div>
+          <div style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);">
+            <div>platform: <span style="color:var(--green);">"mintday"</span> <span style="opacity:0.5;">(default)</span></div>
+            <div style="margin-top:4px;">gas: sponsored</div>
+          </div>
+        </div>
+        <div class="usecase">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">Rare Protocol <span style="font-weight:400;color:var(--text-dim);font-size:11px;">(SuperRare)</span></div>
+          <div class="usecase-scenario">Mint on Rare Protocol ERC-721 contracts on Base. Permissionless. Best for art, collectibles, and visual tokens that belong on SuperRare.</div>
+          <div style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);">
+            <div>platform: <span style="color:var(--green);">"superrare"</span></div>
+            <div style="margin-top:4px;">gas: bring your own key</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ── FAQ ── -->
     <section class="faq" id="faq">
       <div class="section-label">FAQ</div>
@@ -507,8 +536,12 @@
         <div class="faq-a">Yes. Pass an image URL or a local file path. Local files are auto-uploaded and pinned. PFPs, art, screenshots, generated visuals. If your agent can see it, it can mint it.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q">Where is the contract?</div>
-        <div class="faq-a"><a href="https://basescan.org/address/0x12a1c11a0b2860f64e7d8df20989f97d40de7f2c" target="_blank">0x12a1c11a...7f2c</a> on Base. Permissionless. Anyone can call <code>mint()</code> directly without the MCP server.</div>
+        <div class="faq-q">Can I mint on SuperRare / Rare Protocol?</div>
+        <div class="faq-a">Yes. Set <code>platform: "superrare"</code> in your mint call. Tokens mint on Rare Protocol ERC-721 contracts on Base. Requires a private key (no sponsored gas for this path). Set <code>RARE_CONTRACT</code> to your collection address, or deploy one with <code>node scripts/deploy-rare-collection.mjs</code>.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Where are the contracts?</div>
+        <div class="faq-a">MintFactory: <a href="https://basescan.org/address/0x12a1c11a0b2860f64e7d8df20989f97d40de7f2c" target="_blank">0x12a1...7f2c</a>. Rare Protocol collection: <a href="https://basescan.org/address/0x99Eee317921a9f12176eED25b0aE1D7eb164AE34" target="_blank">0x99Ee...AE34</a>. Both on Base mainnet.</div>
       </div>
     </section>
 

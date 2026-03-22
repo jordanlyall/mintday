@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mint.day — admin</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 28px 60px;
+    }
+
+    /* ── Header ── */
+    .admin-header {
+      padding: 28px 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    .admin-left { display: flex; align-items: center; gap: 12px; }
+
+    .admin-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 3px 8px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border-bright);
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+
+    .admin-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .refresh-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .refresh-btn:hover { border-color: var(--border-bright); color: var(--text); }
+    .refresh-btn:disabled { opacity: 0.5; cursor: default; }
+
+    /* ── Stat cards ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .stat-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 7px;
+    }
+
+    /* ── Panels row ── */
+    .panels-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .panel-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
+    }
+
+    /* Wallet */
+    .wallet-balance {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .wallet-addr {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+    }
+    .wallet-addr a { color: var(--blue); text-decoration: none; }
+    .wallet-addr a:hover { text-decoration: underline; }
+
+    .balance-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+    .balance-status.ok { color: var(--green); }
+    .balance-status.warn {
+      color: #92400e;
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 5px;
+      padding: 6px 10px;
+    }
+
+    /* Type breakdown */
+    .type-bars { display: flex; flex-direction: column; gap: 9px; }
+
+    .type-bar-row { display: flex; align-items: center; gap: 10px; }
+
+    .type-bar-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      width: 82px;
+      flex-shrink: 0;
+    }
+
+    .type-bar-track {
+      flex: 1;
+      height: 5px;
+      background: var(--surface-raised);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .type-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+
+    .type-bar-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      width: 24px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Tool calls */
+    .tool-list { display: flex; flex-direction: column; gap: 11px; }
+
+    .tool-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .tool-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .tool-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .tool-note {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+      margin-top: 14px;
+      padding-top: 12px;
+      line-height: 1.7;
+    }
+
+    .analytics-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 14px;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      width: 100%;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .analytics-link:hover { color: var(--text); }
+
+    /* ── Feed ── */
+    .feed-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .feed-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .feed-panel-header .panel-label { margin-bottom: 0; }
+
+    .feed-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    th {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 10px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    td {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 11px 20px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--surface-raised); }
+
+    .type-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .sb-indicator {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .token-name {
+      color: var(--text);
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    .ext-link {
+      color: var(--blue);
+      text-decoration: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+    .ext-link:hover { text-decoration: underline; }
+
+    .placeholder-row {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+      padding: 32px 20px;
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 960px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .panels-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      th:nth-child(5), td:nth-child(5),
+      th:nth-child(6), td:nth-child(6) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- Header -->
+    <div class="admin-header">
+      <div class="admin-left">
+        <a href="/" class="logo">mint<span class="dot">.</span>day</a>
+        <span class="admin-tag">admin</span>
+      </div>
+      <div class="admin-right">
+        <span id="last-updated">loading...</span>
+        <button class="refresh-btn" id="refresh-btn" onclick="refresh()">refresh</button>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total Minted</div>
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-sub">on Base mainnet</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Unique Recipients</div>
+        <div class="stat-value" id="stat-recipients">—</div>
+        <div class="stat-sub">distinct wallets</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Last 24h</div>
+        <div class="stat-value" id="stat-24h">—</div>
+        <div class="stat-sub">mints (~2s blocks)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Soulbound</div>
+        <div class="stat-value" id="stat-soulbound">—</div>
+        <div class="stat-sub" id="stat-sb-pct">of total</div>
+      </div>
+    </div>
+
+    <!-- Panels row -->
+    <div class="panels-row">
+
+      <!-- Sponsored wallet -->
+      <div class="panel">
+        <div class="panel-label">Sponsored Wallet</div>
+        <div class="wallet-balance" id="wallet-balance">—</div>
+        <div class="wallet-addr">
+          <a href="https://basescan.org/address/0x5421d0cCA385C86B05d661Ce05c517C731B11175" target="_blank">0x5421...175</a>
+        </div>
+        <div class="balance-status" id="balance-status"></div>
+      </div>
+
+      <!-- Token type breakdown -->
+      <div class="panel">
+        <div class="panel-label">Token Types</div>
+        <div class="type-bars" id="type-bars">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim);">loading...</span>
+        </div>
+      </div>
+
+      <!-- Tool calls + analytics -->
+      <div class="panel">
+        <div class="panel-label">Tool Calls</div>
+        <div class="tool-list">
+          <div class="tool-row">
+            <span class="tool-name">mint</span>
+            <span class="tool-count" id="tool-mint">—</span>
+          </div>
+          <div class="tool-row">
+            <span class="tool-name">mint_check</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);">not tracked</span>
+          </div>
+          <div class="tool-row">
+            <span class="tool-name">mint_resolve</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);">not tracked</span>
+          </div>
+        </div>
+        <p class="tool-note">
+          mint = on-chain events (exact).<br>
+          check/resolve are read-only —<br>
+          add server logging to count these.
+        </p>
+        <a href="https://vercel.com/dashboard" target="_blank" class="analytics-link">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4"/><path d="M14 4h6v6"/><path d="M14 10L21 3"/></svg>
+          Web analytics (Vercel dashboard)
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Live feed -->
+    <div class="feed-panel">
+      <div class="feed-panel-header">
+        <span class="panel-label">Live Mint Feed</span>
+        <span class="feed-meta" id="feed-meta">—</span>
+      </div>
+      <div id="feed-body">
+        <p class="placeholder-row">fetching mints from Base...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="shared.js"></script>
+  <script>
+    var SPONSORED_WALLET = "0x5421d0cCA385C86B05d661Ce05c517C731B11175";
+    var LOW_ETH = 0.05;
+    var FEED_LIMIT = 30;
+
+    var TYPE_COLORS = {
+      Identity:    { accent: "#3b82f6", bg: "#eff6ff", text: "#1d4ed8" },
+      Attestation: { accent: "#2db87a", bg: "#f0faf5", text: "#1e9e65" },
+      Credential:  { accent: "#a855f7", bg: "#faf5ff", text: "#7e22ce" },
+      Receipt:     { accent: "#e5a030", bg: "#fffbeb", text: "#b45309" },
+      Pass:        { accent: "#0891b2", bg: "#ecfeff", text: "#0e7490" },
+    };
+
+    var TYPE_ORDER = ["Identity", "Attestation", "Credential", "Receipt", "Pass"];
+
+    function shortAddr(a) { return a.slice(0, 6) + "..." + a.slice(-4); }
+    function shortHash(h) { return h.slice(0, 8) + "..." + h.slice(-6); }
+
+    function clearEl(el) {
+      while (el.firstChild) el.removeChild(el.firstChild);
+    }
+
+    function makePlaceholder(text) {
+      var p = document.createElement("p");
+      p.className = "placeholder-row";
+      p.textContent = text;
+      return p;
+    }
+
+    // ── Wallet balance ──
+    async function fetchWalletBalance() {
+      try {
+        var hex = await rpcCall("eth_getBalance", [SPONSORED_WALLET, "latest"]);
+        var eth = Number(BigInt(hex)) / 1e18;
+        document.getElementById("wallet-balance").textContent = eth.toFixed(4) + " ETH";
+        var el = document.getElementById("balance-status");
+        if (eth < LOW_ETH) {
+          el.className = "balance-status warn";
+          el.textContent = "low balance — refill soon";
+          document.getElementById("wallet-balance").style.color = "#92400e";
+        } else {
+          el.className = "balance-status ok";
+          el.textContent = "gas ok";
+        }
+      } catch (e) {
+        document.getElementById("wallet-balance").textContent = "error";
+      }
+    }
+
+    // ── Process feed data ──
+    function processData(data) {
+      var tokens = data.tokens; // newest first
+      var total = data.totalMinted;
+
+      var seen = Object.create(null);
+      for (var i = 0; i < tokens.length; i++) {
+        seen[tokens[i].recipient.toLowerCase()] = true;
+      }
+      var unique = Object.keys(seen).length;
+
+      // ~43200 blocks = 24h at 2s/block
+      var BLOCKS_24H = 43200;
+      var latestBlock = tokens.length > 0 ? tokens[0].block : 0;
+      var cutoff = latestBlock - BLOCKS_24H;
+      var last24h = 0;
+      var soulbound = 0;
+      var typeCounts = { Identity: 0, Attestation: 0, Credential: 0, Receipt: 0, Pass: 0 };
+
+      for (var j = 0; j < tokens.length; j++) {
+        var t = tokens[j];
+        if (t.block >= cutoff) last24h++;
+        if (t.soulbound) soulbound++;
+        if (typeCounts[t.tokenType] !== undefined) typeCounts[t.tokenType]++;
+      }
+
+      var sbPct = total > 0 ? Math.round(soulbound / total * 100) : 0;
+      return { total: total, unique: unique, last24h: last24h, soulbound: soulbound, sbPct: sbPct, typeCounts: typeCounts };
+    }
+
+    // ── Render stat cards ──
+    function renderStats(s) {
+      document.getElementById("stat-total").textContent = s.total.toLocaleString();
+      document.getElementById("stat-recipients").textContent = s.unique.toLocaleString();
+      document.getElementById("stat-24h").textContent = s.last24h.toLocaleString();
+      document.getElementById("stat-soulbound").textContent = s.soulbound.toLocaleString();
+      document.getElementById("stat-sb-pct").textContent = s.sbPct + "% of total";
+      document.getElementById("tool-mint").textContent = s.total.toLocaleString();
+    }
+
+    // ── Render type bars ──
+    function renderTypeBars(typeCounts, total) {
+      var container = document.getElementById("type-bars");
+      clearEl(container);
+
+      TYPE_ORDER.forEach(function(type) {
+        var count = typeCounts[type] || 0;
+        var pct = total > 0 ? (count / total * 100).toFixed(1) : 0;
+        var colors = TYPE_COLORS[type];
+
+        var row = document.createElement("div");
+        row.className = "type-bar-row";
+
+        var label = document.createElement("span");
+        label.className = "type-bar-label";
+        label.style.color = colors.text;
+        label.textContent = type;
+
+        var track = document.createElement("div");
+        track.className = "type-bar-track";
+
+        var fill = document.createElement("div");
+        fill.className = "type-bar-fill";
+        fill.style.width = pct + "%";
+        fill.style.background = colors.accent;
+        fill.style.opacity = "0.65";
+        track.appendChild(fill);
+
+        var countEl = document.createElement("span");
+        countEl.className = "type-bar-count";
+        countEl.textContent = count;
+
+        row.appendChild(label);
+        row.appendChild(track);
+        row.appendChild(countEl);
+        container.appendChild(row);
+      });
+    }
+
+    // ── Render feed table ──
+    function renderFeed(tokens) {
+      var limited = tokens.slice(0, FEED_LIMIT);
+      document.getElementById("feed-meta").textContent =
+        "showing " + limited.length + " of " + tokens.length;
+
+      var container = document.getElementById("feed-body");
+      clearEl(container);
+
+      if (tokens.length === 0) {
+        container.appendChild(makePlaceholder("no mints yet"));
+        return;
+      }
+
+      var table = document.createElement("table");
+
+      var thead = document.createElement("thead");
+      var hr = document.createElement("tr");
+      ["#", "Name", "Type", "Recipient", "SB", "Block", "Tx"].forEach(function(h) {
+        var th = document.createElement("th");
+        th.textContent = h;
+        hr.appendChild(th);
+      });
+      thead.appendChild(hr);
+      table.appendChild(thead);
+
+      var tbody = document.createElement("tbody");
+
+      limited.forEach(function(t) {
+        var colors = TYPE_COLORS[t.tokenType] || { accent: "#999", bg: "#f5f5f5", text: "#666" };
+        var row = document.createElement("tr");
+
+        // #id
+        var tdId = document.createElement("td");
+        tdId.style.color = "var(--text-dim)";
+        tdId.textContent = "#" + t.tokenId;
+
+        // name
+        var tdName = document.createElement("td");
+        var nameSpan = document.createElement("span");
+        nameSpan.className = "token-name";
+        nameSpan.title = t.name || "";
+        nameSpan.textContent = t.name || "—";
+        tdName.appendChild(nameSpan);
+
+        // type badge
+        var tdType = document.createElement("td");
+        var badge = document.createElement("span");
+        badge.className = "type-badge";
+        badge.textContent = t.tokenType;
+        badge.style.background = colors.bg;
+        badge.style.color = colors.text;
+        badge.style.border = "1px solid " + colors.accent + "33";
+        tdType.appendChild(badge);
+
+        // recipient
+        var tdRecipient = document.createElement("td");
+        var addrLink = document.createElement("a");
+        addrLink.href = "https://basescan.org/address/" + t.recipient;
+        addrLink.target = "_blank";
+        addrLink.className = "ext-link";
+        addrLink.style.color = "var(--text-muted)";
+        addrLink.textContent = shortAddr(t.recipient);
+        tdRecipient.appendChild(addrLink);
+
+        // soulbound dot
+        var tdSb = document.createElement("td");
+        var dot = document.createElement("span");
+        dot.className = "sb-indicator";
+        dot.title = t.soulbound ? "soulbound" : "transferable";
+        dot.style.background = t.soulbound ? "var(--green)" : "var(--border-bright)";
+        tdSb.appendChild(dot);
+
+        // block
+        var tdBlock = document.createElement("td");
+        tdBlock.style.color = "var(--text-dim)";
+        tdBlock.textContent = t.block.toLocaleString();
+
+        // tx link
+        var tdTx = document.createElement("td");
+        var txLink = document.createElement("a");
+        txLink.href = "https://basescan.org/tx/" + t.txHash;
+        txLink.target = "_blank";
+        txLink.className = "ext-link";
+        txLink.textContent = shortHash(t.txHash);
+        tdTx.appendChild(txLink);
+
+        row.appendChild(tdId);
+        row.appendChild(tdName);
+        row.appendChild(tdType);
+        row.appendChild(tdRecipient);
+        row.appendChild(tdSb);
+        row.appendChild(tdBlock);
+        row.appendChild(tdTx);
+        tbody.appendChild(row);
+      });
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+
+    // ── Load ──
+    async function load() {
+      var btn = document.getElementById("refresh-btn");
+      btn.disabled = true;
+      btn.textContent = "loading...";
+
+      try {
+        var res = await fetch("/api/feed");
+        var data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        var stats = processData(data);
+        renderStats(stats);
+        renderTypeBars(stats.typeCounts, stats.total);
+        renderFeed(data.tokens);
+
+        var now = new Date();
+        document.getElementById("last-updated").textContent =
+          "updated " + now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      } catch (e) {
+        document.getElementById("last-updated").textContent = "error: " + e.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "refresh";
+      }
+    }
+
+    function refresh() {
+      Promise.all([load(), fetchWalletBalance()]);
+    }
+
+    refresh();
+    setInterval(refresh, 60000);
+  </script>
+</body>
+</html>

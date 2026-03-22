@@ -4,81 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>mint.day — live feed</title>
+  <link rel="stylesheet" href="shared.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
-
-    :root {
-      --bg: #0d0a07;
-      --surface: #151110;
-      --surface-raised: #1c1714;
-      --border: #2a2320;
-      --border-bright: #352d28;
-      --text: #ede8e3;
-      --text-secondary: #a39890;
-      --text-muted: #6e6259;
-      --text-dim: #3d3530;
-      --green: #22c55e;
-      --blue: #60a5fa;
-      --purple: #a78bfa;
-      --orange: #fb923c;
-      --cyan: #22d3ee;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'IBM Plex Sans', -apple-system, sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .container { max-width: 800px; margin: 0 auto; padding: 0 28px; }
-
-    nav {
-      padding: 28px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 700;
-      font-size: 15px;
-      color: var(--text);
-      text-decoration: none;
-      letter-spacing: -0.03em;
-    }
-
-    .logo .dot { color: var(--green); }
-
-    .nav-links {
-      display: flex;
-      gap: 24px;
-      align-items: center;
-    }
-
-    .nav-links a {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      color: var(--text-muted);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .nav-links a:hover { color: var(--text-secondary); }
-
-    .badge {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      padding: 5px 10px;
-      border-radius: 4px;
-      border: 1px solid var(--border-bright);
-      color: var(--text-muted);
-      background: var(--surface);
-    }
-
     .page-header { padding: 48px 0 32px; }
 
     .page-header h1 {
@@ -88,45 +15,27 @@
       letter-spacing: -0.03em;
     }
 
-    .page-header p {
+    .page-header .sub {
       font-family: 'JetBrains Mono', monospace;
       font-size: 12px;
       color: var(--text-dim);
       margin-top: 8px;
-    }
-
-    .chain-tabs {
       display: flex;
-      gap: 2px;
-      margin-bottom: 16px;
-      background: var(--border);
-      border-radius: 8px;
-      overflow: hidden;
+      align-items: center;
+      gap: 8px;
     }
 
-    .chain-tab {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      padding: 8px 16px;
-      background: var(--surface);
-      color: var(--text-muted);
-      border: none;
-      cursor: pointer;
-      flex: 1;
-      text-align: center;
-      transition: all 0.15s;
-    }
-
-    .chain-tab:hover { color: var(--text-secondary); }
-
-    .chain-tab.active {
-      background: var(--surface-raised);
-      color: var(--text);
+    .chain-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s ease-in-out infinite;
     }
 
     .feed-list {
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 0 10px 10px 10px;
       overflow: hidden;
       margin-bottom: 40px;
     }
@@ -137,13 +46,34 @@
       gap: 14px;
       padding: 16px 20px;
       border-bottom: 1px solid var(--border);
-      transition: background 0.15s;
-      text-decoration: none;
-      color: inherit;
     }
 
     .feed-item:last-child { border-bottom: none; }
-    .feed-item:hover { background: var(--surface-raised); }
+
+    .feed-links {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .feed-links a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+
+    .feed-links a:hover {
+      border-color: var(--border-bright);
+      color: var(--text-muted);
+      background: var(--surface-raised);
+    }
 
     .feed-thumb {
       width: 48px;
@@ -153,14 +83,24 @@
       flex-shrink: 0;
       background: var(--bg);
       border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .feed-thumb img {
+    .feed-thumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
+
+    .feed-thumb .gen-thumb {
       width: 100%;
       height: 100%;
-      display: block;
-      object-fit: cover;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 6px;
     }
+
+    .feed-thumb .gen-thumb .gt-bar { height: 2px; width: 16px; border-radius: 1px; opacity: 0.6; }
+    .feed-thumb .gen-thumb .gt-label { font-family: 'JetBrains Mono', monospace; font-size: 7px; margin-top: 3px; opacity: 0.4; }
 
     .feed-info { flex: 1; min-width: 0; }
 
@@ -196,18 +136,52 @@
     .type-Receipt { color: var(--orange); border: 1px solid rgba(251,146,60,0.2); }
     .type-Pass { color: var(--cyan); border: 1px solid rgba(34,211,238,0.2); }
 
-    .feed-soulbound {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px;
-      color: var(--green);
-      opacity: 0.5;
+    .feed-soulbound { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--green); opacity: 0.5; }
+    .feed-addr { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); }
+    .feed-time { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); flex-shrink: 0; }
+
+    .feed-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: -1px;
+      position: relative;
+      z-index: 1;
     }
 
-    .feed-time {
+    .feed-tab {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
+      font-size: 12px;
+      padding: 10px 20px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
       color: var(--text-dim);
-      flex-shrink: 0;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .feed-tab:first-child { border-radius: 8px 0 0 0; }
+    .feed-tab:last-child { border-radius: 0 8px 0 0; border-left: none; }
+
+    .feed-tab.active {
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 600;
+      border-bottom-color: var(--surface);
+    }
+
+    .feed-tab:not(.active):hover {
+      background: var(--bg);
+      color: var(--text-muted);
+    }
+
+    .feed-tab .tab-dot {
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
     }
 
     .feed-status {
@@ -225,7 +199,13 @@
       padding: 12px 20px;
       border-bottom: 1px solid var(--border);
       background: var(--surface);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
+
+    .feed-count a { color: var(--blue); text-decoration: none; font-size: 10px; }
+    .feed-count a:hover { color: var(--text-secondary); }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(4px); }
@@ -235,204 +215,387 @@
 </head>
 <body>
   <div class="container">
-    <nav>
-      <a href="index.html" class="logo">mint<span class="dot">.</span>day</a>
-      <div class="nav-links">
-        <a href="feed.html">feed</a>
-        <span class="badge" style="font-size:11px;padding:4px 8px;border-color:rgba(96,165,250,0.25);color:#60a5fa;">Base</span>
-        <a href="https://github.com/jordanlyall/agent-mint" target="_blank" title="GitHub"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a>
-        <a href="https://x.com/jordanlyall" target="_blank" title="X"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
-      </div>
-    </nav>
+    <div id="site-nav"></div>
 
     <div class="page-header">
-      <h1>Live mints</h1>
-      <p>Every token minted through mint.day, on-chain.</p>
+      <h1>Live feed</h1>
+      <div class="sub"><span class="chain-dot"></span> Base mainnet</div>
     </div>
 
-    <div class="chain-tabs">
-      <button class="chain-tab active" id="tab-mainnet" onclick="switchChain('mainnet')">Base Mainnet</button>
-      <button class="chain-tab" id="tab-sepolia" onclick="switchChain('sepolia')">Base Sepolia</button>
+    <div class="feed-tabs">
+      <button class="feed-tab active" onclick="switchTab('mintday')"><span class="tab-dot" style="background:var(--green);"></span>mint.day</button>
+      <button class="feed-tab" onclick="switchTab('rare')"><span class="tab-dot" style="background:var(--purple);"></span>Rare Protocol</button>
     </div>
-
     <div class="feed-list" id="feed-list">
       <div class="feed-status">Loading on-chain data...</div>
     </div>
+
+    <div id="site-footer"></div>
   </div>
 
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script src="shared.js"></script>
   <script>
-    const TYPE_NAMES = ["Identity", "Attestation", "Credential", "Receipt", "Pass"];
-    const CHAINS = {
-      sepolia: {
-        rpc: "https://sepolia.base.org",
-        contract: "0xa52450397f312c256Bd68B202C0CF90387Ea0E67",
-        explorer: "https://sepolia.basescan.org",
-        fromBlock: 38960000,
-      },
-      mainnet: {
-        rpc: "https://mainnet.base.org",
-        contract: "0xbf12d372444dcf69df9316d961439f6b5919e8d0",
-        explorer: "https://basescan.org",
-        fromBlock: 28000000,
-      }
-    };
+    renderNav("site-nav");
+    renderFooter("site-footer");
 
-    // Minted(uint256 indexed tokenId, address indexed to, uint8 tokenType, bool soulbound, string tokenURI)
-    const MINTED_SIG = "0xcaf90953c630066d72a36149d0170187181e7b386b987ac551e117b7b0ff06c4";
+    var CACHE_KEY = "mintday_feed";
+    var CACHE_KEY_RARE = "rare_feed";
+    var RARE_CONTRACT = "0x99Eee317921a9f12176eED25b0aE1D7eb164AE34";
+    var RARE_FROM_BLOCK = 43711485;
+    var TRANSFER_SIG = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+    var ZERO_ADDR = "0x0000000000000000000000000000000000000000000000000000000000000000";
+    var currentTab = "mintday";
 
-    function escapeHtml(str) {
-      const el = document.createElement("span");
-      el.textContent = str;
-      return el.innerHTML;
+    function svgEl(tag, attrs) {
+      var el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+      for (var k in attrs) el.setAttribute(k, attrs[k]);
+      return el;
     }
 
-    function decodeMintedLog(log) {
-      const tokenId = parseInt(log.topics[1], 16);
-      const to = "0x" + log.topics[2].slice(26);
-      const data = log.data.slice(2);
-      const tokenType = parseInt(data.slice(0, 64), 16);
-      const soulbound = parseInt(data.slice(64, 128), 16) === 1;
-
-      const strOffset = parseInt(data.slice(128, 192), 16) * 2;
-      const strLen = parseInt(data.slice(strOffset, strOffset + 64), 16);
-      const strHex = data.slice(strOffset + 64, strOffset + 64 + strLen * 2);
-      let tokenURI = "";
-      try { tokenURI = new TextDecoder().decode(new Uint8Array(strHex.match(/.{2}/g).map(b => parseInt(b, 16)))); } catch {}
-
-      let metadata = {};
-      if (tokenURI.startsWith("data:application/json;base64,")) {
-        try { metadata = JSON.parse(atob(tokenURI.replace("data:application/json;base64,", ""))); } catch {}
-      }
-
-      return { tokenId, to, tokenType, soulbound, metadata, blockNumber: parseInt(log.blockNumber, 16), txHash: log.transactionHash };
+    function makeScanLink(txHash) {
+      var a = document.createElement("a");
+      a.href = MINTDAY.explorer + "/tx/" + txHash;
+      a.target = "_blank";
+      a.title = "Basescan";
+      var svg = svgEl("svg", { width: "14", height: "14", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" });
+      svg.appendChild(svgEl("path", { d: "M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4" }));
+      svg.appendChild(svgEl("path", { d: "M14 4h6v6" }));
+      svg.appendChild(svgEl("path", { d: "M14 10L21 3" }));
+      a.appendChild(svg);
+      return a;
     }
 
-    function timeAgo(blockNum, latestBlock) {
-      const seconds = (latestBlock - blockNum) * 2;
-      if (seconds < 60) return seconds + "s ago";
-      if (seconds < 3600) return Math.floor(seconds / 60) + "m ago";
-      if (seconds < 86400) return Math.floor(seconds / 3600) + "h ago";
-      return Math.floor(seconds / 86400) + "d ago";
+    function makeOsLink(tokenId) {
+      var a = document.createElement("a");
+      a.href = "https://opensea.io/item/base/" + MINTDAY.contract + "/" + tokenId;
+      a.target = "_blank";
+      a.title = "OpenSea";
+      var svg = svgEl("svg", { width: "14", height: "14", viewBox: "0 0 90 90", fill: "currentColor" });
+      svg.appendChild(svgEl("path", { d: "M45 0C20.151 0 0 20.151 0 45c0 24.849 20.151 45 45 45 24.849 0 45-20.151 45-45C90 20.151 69.849 0 45 0zM22.203 46.512l.252-.504 12.06-18.858c.18-.27.54-.234.684.054 2.016 4.464 3.762 10.008 2.952 13.464-.342 1.404-1.278 3.312-2.34 5.058-.126.252-.27.486-.414.72-.072.108-.198.162-.324.162H22.563c-.306 0-.486-.342-.36-.612v-.504zm52.38 5.4c0 .198-.126.36-.306.432-1.098.468-4.842 2.196-6.408 4.374-3.978 5.562-7.02 13.518-13.824 13.518H32.49c-10.116 0-18.324-8.226-18.324-18.378v-.324c0-.234.18-.414.414-.414h13.41c.27 0 .468.252.45.522-.09.72.054 1.458.432 2.124.72 1.332 2.07 2.16 3.528 2.16h5.526v-4.266h-5.472c-.306 0-.486-.36-.342-.63.054-.09.108-.18.18-.288.54-.828 1.314-2.142 2.088-3.636.522-.99 1.026-2.034 1.422-3.096.09-.198.162-.396.234-.576.126-.36.252-.702.342-1.044.09-.288.162-.594.234-.882.198-1.008.27-2.07.27-3.168 0-.432-.018-.882-.054-1.314-.018-.486-.072-.972-.144-1.458-.054-.414-.144-.828-.234-1.26-.126-.612-.288-1.224-.486-1.836l-.072-.252c-.144-.468-.27-.918-.432-1.386-1.044-3.042-2.178-5.94-3.276-8.478l-.234-.504c-.072-.162-.144-.306-.216-.45-.198-.414-.414-.81-.63-1.188-.108-.198-.234-.378-.342-.558-.144-.234-.306-.45-.432-.648-.09-.144-.198-.27-.288-.396l-.774-.972c-.09-.108.036-.27.162-.234l4.212 1.116h.018l.558.162.612.18.216.054V17.37c0-1.602 1.278-2.898 2.844-2.898 .792 0 1.494.324 2.016.846.522.522.828 1.242.828 2.052v7.776l.45.126c.036.018.072.036.108.072.126.108.306.27.54.468.18.162.378.36.612.576.468.432 1.026.99 1.602 1.62.162.18.324.36.468.558.612.738 1.296 1.584 1.944 2.52.18.27.36.54.522.828.486.828.918 1.692 1.278 2.574.126.288.234.594.306.882v.036c.108.306.18.63.234.954.162.882.234 1.8.162 2.736-.036.378-.09.738-.162 1.116-.09.378-.18.738-.306 1.116-.252.72-.558 1.422-.918 2.07-.126.234-.27.486-.414.72-.162.234-.306.468-.468.684-.216.306-.45.594-.666.864-.198.252-.414.504-.63.738-.324.378-.648.72-.99 1.044-.198.216-.414.414-.63.594-.216.198-.432.378-.63.54-.324.27-.612.486-.864.666l-.558.396c-.09.072-.216.108-.324.108h-3.366v4.266h4.176c.954 0 1.854-.342 2.574-.954.252-.216 2.736-2.376 5.886-6.462.018-.036.072-.072.126-.09l14.652-4.266c.27-.072.54.126.54.396v.504z" }));
+      a.appendChild(svg);
+      return a;
     }
 
-    async function rpc(url, method, params) {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params })
-      });
-      return (await res.json()).result;
+    function buildThumb(typeName) {
+      var colors = MINTDAY.typeColors[typeName] || MINTDAY.typeColors.Attestation;
+      var div = document.createElement("div");
+      div.className = "gen-thumb";
+      div.style.background = colors.bg;
+      var bar = document.createElement("div");
+      bar.className = "gt-bar";
+      bar.style.background = colors.accent;
+      div.appendChild(bar);
+      var label = document.createElement("div");
+      label.className = "gt-label";
+      label.style.color = colors.accent;
+      label.textContent = typeName.toUpperCase();
+      div.appendChild(label);
+      return div;
     }
 
-    async function loadFeed(chain) {
-      const list = document.getElementById("feed-list");
+    function renderItems(items, latestBlock) {
+      var list = document.getElementById("feed-list");
       list.textContent = "";
-      const status = document.createElement("div");
-      status.className = "feed-status";
-      status.textContent = "Loading on-chain data...";
-      list.appendChild(status);
 
-      try {
-        const c = CHAINS[chain];
-        const latest = await rpc(c.rpc, "eth_blockNumber", []);
-        const latestBlock = parseInt(latest, 16);
-        const from = "0x" + Math.max(latestBlock - 9900, c.fromBlock).toString(16);
+      if (items.length === 0) {
+        var empty = document.createElement("div");
+        empty.className = "feed-status";
+        empty.textContent = "No mints yet. Be the first.";
+        list.appendChild(empty);
+        return;
+      }
 
-        const logs = await rpc(c.rpc, "eth_getLogs", [{
-          address: c.contract, fromBlock: from, toBlock: "latest", topics: [MINTED_SIG]
-        }]) || [];
+      var count = document.createElement("div");
+      count.className = "feed-count";
+      var countText = document.createElement("span");
+      countText.textContent = items.length + " token" + (items.length !== 1 ? "s" : "") + " minted on Base";
+      count.appendChild(countText);
+      var contractLink = document.createElement("a");
+      contractLink.href = MINTDAY.explorer + "/address/" + MINTDAY.contract;
+      contractLink.target = "_blank";
+      contractLink.textContent = "view contract";
+      count.appendChild(contractLink);
+      list.appendChild(count);
 
-        list.textContent = "";
+      items.forEach(function(item, i) {
+        var typeName = MINTDAY.typeNames[item.tokenType] || "Unknown";
+        var name = item.metadata.name || "mint.day #" + item.tokenId;
+        var image = item.metadata.image || "";
+        var shortAddr = item.to.slice(0, 6) + "..." + item.to.slice(-4);
 
-        if (logs.length === 0) {
-          const empty = document.createElement("div");
-          empty.className = "feed-status";
-          empty.textContent = "No mints yet. Be the first.";
-          list.appendChild(empty);
-          return;
+        var row = document.createElement("div");
+        row.className = "feed-item";
+        row.style.animationName = "fadeIn";
+        row.style.animationDuration = "0.3s";
+        row.style.animationDelay = (i * 0.05) + "s";
+        row.style.animationFillMode = "both";
+
+        var thumb = document.createElement("div");
+        thumb.className = "feed-thumb";
+        if (image) {
+          var img = document.createElement("img");
+          img.src = image;
+          img.alt = "";
+          img.loading = "lazy";
+          img.onerror = function() { thumb.textContent = ""; thumb.appendChild(buildThumb(typeName)); };
+          thumb.appendChild(img);
+        } else {
+          thumb.appendChild(buildThumb(typeName));
         }
+        row.appendChild(thumb);
 
-        const items = logs.map(decodeMintedLog).reverse();
+        var info = document.createElement("div");
+        info.className = "feed-info";
+        var nameEl = document.createElement("div");
+        nameEl.className = "feed-name";
+        nameEl.textContent = "#" + item.tokenId + " " + name;
+        info.appendChild(nameEl);
 
-        const count = document.createElement("div");
-        count.className = "feed-count";
-        count.textContent = items.length + " token" + (items.length !== 1 ? "s" : "") + " minted";
-        list.appendChild(count);
+        var meta = document.createElement("div");
+        meta.className = "feed-meta";
+        var typeEl = document.createElement("span");
+        typeEl.className = "feed-type type-" + typeName;
+        typeEl.textContent = typeName;
+        meta.appendChild(typeEl);
+        if (item.soulbound) {
+          var sb = document.createElement("span");
+          sb.className = "feed-soulbound";
+          sb.textContent = "soulbound";
+          meta.appendChild(sb);
+        }
+        var addrEl = document.createElement("span");
+        addrEl.className = "feed-addr";
+        addrEl.textContent = shortAddr;
+        meta.appendChild(addrEl);
+        info.appendChild(meta);
+        row.appendChild(info);
 
-        items.forEach((item, i) => {
-          const typeName = TYPE_NAMES[item.tokenType] || "Unknown";
-          const name = item.metadata.name || "mint.day token #" + item.tokenId;
-          const image = item.metadata.image || "";
+        var time = document.createElement("div");
+        time.className = "feed-time";
+        time.textContent = timeAgo(item.blockNumber, latestBlock);
+        row.appendChild(time);
 
-          const a = document.createElement("a");
-          a.className = "feed-item";
-          a.href = c.explorer + "/tx/" + item.txHash;
-          a.target = "_blank";
-          a.style.animationName = "fadeIn";
-          a.style.animationDuration = "0.3s";
-          a.style.animationDelay = (i * 0.05) + "s";
-          a.style.animationFillMode = "both";
+        var links = document.createElement("div");
+        links.className = "feed-links";
+        links.appendChild(makeScanLink(item.txHash));
+        links.appendChild(makeOsLink(item.tokenId));
+        row.appendChild(links);
 
-          const thumb = document.createElement("div");
-          thumb.className = "feed-thumb";
-          if (image) {
-            const img = document.createElement("img");
-            img.src = image;
-            img.alt = "";
-            img.loading = "lazy";
-            thumb.appendChild(img);
-          }
-          a.appendChild(thumb);
+        list.appendChild(row);
+      });
+    }
 
-          const info = document.createElement("div");
-          info.className = "feed-info";
-          const nameEl = document.createElement("div");
-          nameEl.className = "feed-name";
-          nameEl.textContent = name;
-          info.appendChild(nameEl);
+    async function fetchFeed() {
+      var latest = await rpcCall("eth_blockNumber", []);
+      var latestBlock = parseInt(latest, 16);
+      var allLogs = [];
+      var from = MINTDAY.fromBlock;
+      while (from <= latestBlock) {
+        var to = Math.min(from + 9900, latestBlock);
+        var logs = await rpcCall("eth_getLogs", [{
+          address: MINTDAY.contract,
+          fromBlock: "0x" + from.toString(16),
+          toBlock: "0x" + to.toString(16),
+          topics: [MINTDAY.mintedSig]
+        }]);
+        if (logs && logs.length) allLogs = allLogs.concat(logs);
+        from = to + 1;
+      }
+      return { items: allLogs.map(decodeMintedLog).reverse(), latestBlock: latestBlock };
+    }
 
-          const meta = document.createElement("div");
-          meta.className = "feed-meta";
-          const typeEl = document.createElement("span");
-          typeEl.className = "feed-type type-" + typeName;
-          typeEl.textContent = typeName;
-          meta.appendChild(typeEl);
-          if (item.soulbound) {
-            const sb = document.createElement("span");
-            sb.className = "feed-soulbound";
-            sb.textContent = "soulbound";
-            meta.appendChild(sb);
-          }
-          const idEl = document.createElement("span");
-          idEl.textContent = "#" + item.tokenId;
-          meta.appendChild(idEl);
-          info.appendChild(meta);
-          a.appendChild(info);
+    async function fetchRareFeed() {
+      var latest = await rpcCall("eth_blockNumber", []);
+      var latestBlock = parseInt(latest, 16);
+      var allLogs = [];
+      var from = RARE_FROM_BLOCK;
+      while (from <= latestBlock) {
+        var to = Math.min(from + 9900, latestBlock);
+        var logs = await rpcCall("eth_getLogs", [{
+          address: RARE_CONTRACT,
+          fromBlock: "0x" + from.toString(16),
+          toBlock: "0x" + to.toString(16),
+          topics: [TRANSFER_SIG, ZERO_ADDR]
+        }]);
+        if (logs && logs.length) allLogs = allLogs.concat(logs);
+        from = to + 1;
+      }
+      return {
+        items: allLogs.map(function(log) {
+          var tokenId = parseInt(log.topics[3], 16);
+          var to = "0x" + log.topics[2].slice(26);
+          return {
+            tokenId: tokenId,
+            to: to,
+            txHash: log.transactionHash,
+            blockNumber: parseInt(log.blockNumber, 16),
+            tokenType: 1,
+            soulbound: false,
+            metadata: { name: "mint.day #" + tokenId },
+            platform: "rare"
+          };
+        }).reverse(),
+        latestBlock: latestBlock
+      };
+    }
 
-          const time = document.createElement("div");
-          time.className = "feed-time";
-          time.textContent = timeAgo(item.blockNumber, latestBlock);
-          a.appendChild(time);
+    function renderRareItems(items, latestBlock) {
+      var list = document.getElementById("feed-list");
+      list.textContent = "";
 
-          list.appendChild(a);
-        });
-      } catch (err) {
-        list.textContent = "";
-        const fail = document.createElement("div");
-        fail.className = "feed-status";
-        fail.textContent = "Failed to load. Try refreshing.";
-        list.appendChild(fail);
-        console.error(err);
+      if (items.length === 0) {
+        var empty = document.createElement("div");
+        empty.className = "feed-status";
+        empty.textContent = "No Rare Protocol mints yet.";
+        list.appendChild(empty);
+        return;
+      }
+
+      var count = document.createElement("div");
+      count.className = "feed-count";
+      var countText = document.createElement("span");
+      countText.textContent = items.length + " token" + (items.length !== 1 ? "s" : "") + " minted via Rare Protocol";
+      count.appendChild(countText);
+      var contractLink = document.createElement("a");
+      contractLink.href = MINTDAY.explorer + "/address/" + RARE_CONTRACT;
+      contractLink.target = "_blank";
+      contractLink.textContent = "view contract";
+      count.appendChild(contractLink);
+      list.appendChild(count);
+
+      items.forEach(function(item, i) {
+        var shortAddr = item.to.slice(0, 6) + "..." + item.to.slice(-4);
+        var row = document.createElement("div");
+        row.className = "feed-item";
+        row.style.animationName = "fadeIn";
+        row.style.animationDuration = "0.3s";
+        row.style.animationDelay = (i * 0.05) + "s";
+        row.style.animationFillMode = "both";
+
+        var thumb = document.createElement("div");
+        thumb.className = "feed-thumb";
+        var gt = document.createElement("div");
+        gt.className = "gen-thumb";
+        gt.style.background = "#faf5ff";
+        var bar = document.createElement("div");
+        bar.className = "gt-bar";
+        bar.style.background = "#a855f7";
+        gt.appendChild(bar);
+        var label = document.createElement("div");
+        label.className = "gt-label";
+        label.style.color = "#a855f7";
+        label.textContent = "RARE";
+        gt.appendChild(label);
+        thumb.appendChild(gt);
+        row.appendChild(thumb);
+
+        var info = document.createElement("div");
+        info.className = "feed-info";
+        var nameEl = document.createElement("div");
+        nameEl.className = "feed-name";
+        nameEl.textContent = "#" + item.tokenId + " " + (item.metadata.name || "");
+        info.appendChild(nameEl);
+        var meta = document.createElement("div");
+        meta.className = "feed-meta";
+        var typeEl = document.createElement("span");
+        typeEl.className = "feed-type";
+        typeEl.style.color = "var(--purple)";
+        typeEl.style.border = "1px solid rgba(167,139,250,0.2)";
+        typeEl.textContent = "Rare Protocol";
+        meta.appendChild(typeEl);
+        var addrEl = document.createElement("span");
+        addrEl.className = "feed-addr";
+        addrEl.textContent = shortAddr;
+        meta.appendChild(addrEl);
+        info.appendChild(meta);
+        row.appendChild(info);
+
+        var time = document.createElement("div");
+        time.className = "feed-time";
+        time.textContent = timeAgo(item.blockNumber, latestBlock);
+        row.appendChild(time);
+
+        var links = document.createElement("div");
+        links.className = "feed-links";
+        links.appendChild(makeScanLink(item.txHash));
+        row.appendChild(links);
+
+        list.appendChild(row);
+      });
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      var tabs = document.querySelectorAll(".feed-tab");
+      tabs.forEach(function(t) { t.classList.remove("active"); });
+      if (tab === "mintday") {
+        tabs[0].classList.add("active");
+        loadMintdayFeed();
+      } else {
+        tabs[1].classList.add("active");
+        loadRareFeed();
       }
     }
 
-    function switchChain(chain) {
-      document.getElementById("tab-sepolia").classList.toggle("active", chain === "sepolia");
-      document.getElementById("tab-mainnet").classList.toggle("active", chain === "mainnet");
-      loadFeed(chain);
+    function showLoading(msg) {
+      var list = document.getElementById("feed-list");
+      list.textContent = "";
+      var s = document.createElement("div");
+      s.className = "feed-status";
+      s.textContent = msg;
+      list.appendChild(s);
     }
 
-    loadFeed("mainnet");
+    async function loadMintdayFeed() {
+      showLoading("Loading on-chain data...");
+      try {
+        var cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+        if (cached && cached.items && cached.items.length > 0) {
+          renderItems(cached.items, cached.latestBlock);
+        }
+      } catch (e) {}
+      try {
+        var data = await fetchFeed();
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ items: data.items, latestBlock: data.latestBlock, ts: Date.now() }));
+        renderItems(data.items, data.latestBlock);
+      } catch (err) {
+        var list = document.getElementById("feed-list");
+        if (!list.querySelector(".feed-item")) {
+          list.textContent = "";
+          var fail = document.createElement("div");
+          fail.className = "feed-status";
+          fail.textContent = "Failed to load: " + err.message;
+          list.appendChild(fail);
+        }
+      }
+    }
+
+    async function loadRareFeed() {
+      showLoading("Loading Rare Protocol data...");
+      try {
+        var cached = JSON.parse(localStorage.getItem(CACHE_KEY_RARE));
+        if (cached && cached.items && cached.items.length > 0) {
+          renderRareItems(cached.items, cached.latestBlock);
+        }
+      } catch (e) {}
+      try {
+        var data = await fetchRareFeed();
+        localStorage.setItem(CACHE_KEY_RARE, JSON.stringify({ items: data.items, latestBlock: data.latestBlock, ts: Date.now() }));
+        renderRareItems(data.items, data.latestBlock);
+      } catch (err) {
+        var list = document.getElementById("feed-list");
+        if (!list.querySelector(".feed-item")) {
+          list.textContent = "";
+          var fail = document.createElement("div");
+          fail.className = "feed-status";
+          fail.textContent = "Failed to load: " + err.message;
+          list.appendChild(fail);
+        }
+      }
+    }
+
+    loadMintdayFeed();
   </script>
 </body>
 </html>

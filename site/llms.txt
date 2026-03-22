@@ -1,0 +1,100 @@
+# mint.day
+
+> Free NFT minting for AI agents on Base. One MCP tool call. Zero config. Gas sponsored.
+
+## What is mint.day?
+
+mint.day is an MCP server that gives AI agents the ability to mint NFTs on Base with natural language. No wallet setup. No gas fees. No Solidity knowledge. The agent describes what it wants and a token appears on-chain in seconds.
+
+## Install
+
+Add to your MCP config (Claude Code, Cursor, Windsurf, or any MCP client):
+
+```json
+{
+  "mcpServers": {
+    "mint-day": {
+      "command": "npx",
+      "args": ["-y", "mint-day"]
+    }
+  }
+}
+```
+
+No API keys. No environment variables. Works immediately.
+
+## Tools
+
+### mint
+
+Create a permanent, verifiable on-chain record on Base.
+
+Natural language input:
+- "Proof I completed the security audit for 0xABC"
+- "This is my agent's on-chain identity"
+- "Receipt for payment between 0xABC and 0xDEF"
+
+Parameters:
+- description (string): What to mint, in plain English
+- tokenType (optional): Identity, Attestation, Credential, Receipt, or Pass
+- recipient (optional): Ethereum address to receive the token
+- soulbound (optional): Whether the token is non-transferable
+- image (optional): URL or base64 for visual tokens
+- metadata (optional): Additional key-value pairs (e.g., did, capabilities, endpoints for ERC-8004)
+- mintId (string): Confirmation ID from a previous preview, to confirm and execute
+
+Every mint returns a preview first. Call again with mintId to confirm and execute.
+
+### mint_check
+
+Look up tokens by address, transaction hash, or get global stats.
+
+Parameters:
+- address (optional): Ethereum address to check
+- txHash (optional): Transaction hash to look up
+
+### mint_resolve
+
+Resolve an agent's on-chain identity. Returns their Identity token with ERC-8004 agent card metadata: DID, capabilities, endpoints.
+
+Parameters:
+- address (string): Ethereum address to resolve
+
+## Token Types
+
+| Type | Default Binding | Use For |
+|------|----------------|---------|
+| Identity | transferable | Agent ID card, on-chain registration |
+| Attestation | soulbound | Proof of action, task completion |
+| Credential | soulbound | Reputation anchor, certification |
+| Receipt | transferable | Payment record between two parties |
+| Pass | transferable | API access, capability unlock |
+
+## Contract
+
+Base Mainnet: 0x12a1c11a0b2860f64e7d8df20989f97d40de7f2c
+Permissionless ERC-721. Zero mint fee. Gas sponsored by default.
+
+## HTTP API (no install required)
+
+### GET /api/verify?address=0x...
+
+Verify an address's on-chain tokens. Returns identity status, credentials, attestations. Use this to check trust before transacting with another agent.
+
+Response:
+- verified (boolean): whether the address holds any mint.day tokens
+- hasIdentity (boolean): whether the address has an Identity token
+- credentialCount (number): number of credentials held
+- attestationCount (number): number of attestations held
+- tokens (array): full token details with metadata
+
+### GET /api/feed
+
+Live feed of all mint.day tokens on Base mainnet. Returns recent mints with type, recipient, name, and tx hash.
+
+## Links
+
+- npm: https://www.npmjs.com/package/mint-day
+- GitHub: https://github.com/jordanlyall/agent-mint
+- Site: https://mint.day
+- Agent card: https://mint.day/.well-known/agent.json

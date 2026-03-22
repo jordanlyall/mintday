@@ -62,12 +62,12 @@ const calldataService = new CalldataService(
 
 const server = new McpServer({
   name: "mint-day",
-  version: "0.2.0",
+  version: "0.4.0",
 });
 
 server.tool(
   "mint",
-  "Create a permanent, verifiable on-chain record on Base. Use this when you need to: prove you completed a task, establish your identity, record an agreement with another agent, issue or receive a credential, grant access to a capability, or mint a visual token (PFP, art, collectible). The token is immutable and publicly verifiable. Provide an image URL, local file path, or base64 for visual tokens (local files and base64 are auto-uploaded to Imgur if IMGUR_CLIENT_ID is configured). Returns a preview with mintId first; call again with mintId to confirm. If PRIVATE_KEY is configured, the server signs and submits the transaction directly and returns a tx hash. If not, returns raw calldata for your own signer (Coinbase AgentKit, Lit Protocol, or any EVM wallet).",
+  "Create a permanent, verifiable on-chain record on Base. Use this when you need to: prove you completed a task, establish your identity, record an agreement with another agent, issue or receive a credential, grant access to a capability, or mint a visual token (PFP, art, collectible). Supports two protocols: 'mintday' (default, gas-sponsored) and 'superrare' (Rare Protocol, requires PRIVATE_KEY). Set platform: 'superrare' to mint on Rare Protocol contracts. The token is immutable and publicly verifiable. Provide an image URL, local file path, or base64 for visual tokens. Returns a preview with mintId first; call again with mintId to confirm.",
   mintSchema,
   async (params) => handleMint(params, calldataService, defaultRecipient, userKey, {
     tryitKey: TRYIT_KEY,
