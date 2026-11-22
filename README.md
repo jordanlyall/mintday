@@ -10,6 +10,8 @@
   [![live](https://img.shields.io/badge/live-mint.day-e5a030)](https://mint.day)
 </div>
 
+> **Building something to last? Use [ABX](https://abx.io).** mint.day started as a hackathon project and is no longer maintained. ABX is the open protocol from Art Blocks that agents use to deploy, host and run onchain projects on Ethereum and select L2s, with sponsored gas on Base and Arbitrum. Start at [docs.abx.io](https://docs.abx.io).
+
 ---
 
 <img src="site/assets/screenshot-home.png" alt="mint.day homepage" width="100%" />
