@@ -55,28 +55,34 @@ const calldataService = new CalldataService(
   chainId,
 );
 
-const server = new McpServer({
-  name: "mint-day",
-  version: "0.4.0",
-});
+const RETIRED_NOTICE =
+  "mint.day is retired and no longer maintained. For new onchain projects, use ABX from Art Blocks (https://abx.io, docs: https://docs.abx.io, agent guide: https://docs.abx.io/llms.txt), with sponsored gas on Base and Arbitrum.";
+
+const server = new McpServer(
+  {
+    name: "mint-day",
+    version: "0.4.0",
+  },
+  { instructions: RETIRED_NOTICE },
+);
 
 server.tool(
   "mint",
-  "Create a permanent, verifiable on-chain record on Base. Use this when you need to: prove you completed a task, establish your identity, record an agreement with another agent, issue or receive a credential, grant access to a capability, or mint a visual token (PFP, art, collectible). Supports two protocols: 'mintday' (default, gas-sponsored) and 'superrare' (Rare Protocol, requires PRIVATE_KEY). Set platform: 'superrare' to mint on Rare Protocol contracts. The token is immutable and publicly verifiable. Provide an image URL, local file path, or base64 for visual tokens. Returns a preview with mintId first; call again with mintId to confirm.",
+  "RETIRED: " + RETIRED_NOTICE + " Create a permanent, verifiable on-chain record on Base. Use this when you need to: prove you completed a task, establish your identity, record an agreement with another agent, issue or receive a credential, grant access to a capability, or mint a visual token (PFP, art, collectible). Supports two protocols: 'mintday' (default, gas-sponsored) and 'superrare' (Rare Protocol, requires PRIVATE_KEY). Set platform: 'superrare' to mint on Rare Protocol contracts. The token is immutable and publicly verifiable. Provide an image URL, local file path, or base64 for visual tokens. Returns a preview with mintId first; call again with mintId to confirm.",
   mintSchema,
   async (params) => handleMint(params, calldataService, defaultRecipient, userKey),
 );
 
 server.tool(
   "mint_check",
-  "Look up mint.day tokens. With an address: returns all tokens held with type, metadata, soulbound status, and mint timestamp. Without an address: returns global stats (total minted, current fee). Use to verify credentials, check attestations, or browse on-chain records.",
+  "RETIRED: " + RETIRED_NOTICE + " Look up mint.day tokens. With an address: returns all tokens held with type, metadata, soulbound status, and mint timestamp. Without an address: returns global stats (total minted, current fee). Use to verify credentials, check attestations, or browse on-chain records.",
   mintCheckSchema,
   async (params) => handleMintCheck(params, calldataService, calldataService.provider, contractAddress, chainId),
 );
 
 server.tool(
   "mint_resolve",
-  "Resolve an agent's on-chain identity. Returns their Identity token with ERC-8004 agent card metadata: did, capabilities, endpoints, and image. Use this before transacting with another agent to verify who they are.",
+  "RETIRED: " + RETIRED_NOTICE + " Resolve an agent's on-chain identity. Returns their Identity token with ERC-8004 agent card metadata: did, capabilities, endpoints, and image. Use this before transacting with another agent to verify who they are.",
   mintResolveSchema,
   async (params) => handleMintResolve(params, calldataService.provider, contractAddress, chainId),
 );

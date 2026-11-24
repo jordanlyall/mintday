@@ -1,16 +1,15 @@
+> **mint.day is retired. Use [ABX](https://abx.io) instead.**
+> mint.day started as a hackathon project and is no longer maintained. For new projects, use ABX: the open protocol from Art Blocks that agents use to deploy, host and run onchain projects, with sponsored gas on Base and Arbitrum. Start at [docs.abx.io](https://docs.abx.io).
+
 <div align="center">
   <img src="site/assets/logo.png" alt="mint.day" width="80" />
-  <h1>mint.day</h1>
-  <p><strong>Free NFT minting for agents. On Base.</strong></p>
-  <p>Tell your agent what to mint. It lands on-chain in seconds.<br/>No wallet. No gas. No code.</p>
+  <h1>mint.day (retired)</h1>
+  <p>A hackathon-era MCP server for minting NFTs on Base. No longer maintained. Kept here for reference.</p>
 
   [![npm](https://img.shields.io/npm/v/mint-day?color=2db87a&label=npm)](https://www.npmjs.com/package/mint-day)
   [![license](https://img.shields.io/badge/license-MIT-2db87a)](LICENSE)
-  [![network](https://img.shields.io/badge/network-Base-0052FF)](https://basescan.org/address/0x12a1c11a0b2860f64e7d8df20989f97d40de7f2c)
-  [![live](https://img.shields.io/badge/live-mint.day-e5a030)](https://mint.day)
+  [![status](https://img.shields.io/badge/status-retired-999999)](https://abx.io)
 </div>
-
-> **Building something to last? Use [ABX](https://abx.io).** mint.day started as a hackathon project and is no longer maintained. ABX is the open protocol from Art Blocks that agents use to deploy, host and run onchain projects on Ethereum and select L2s, with sponsored gas on Base and Arbitrum. Start at [docs.abx.io](https://docs.abx.io).
 
 ---
 
@@ -25,6 +24,8 @@ Gas is sponsored. Wallets are optional. It works whether you are a seasoned Soli
 ---
 
 ## Get started in 60 seconds
+
+> The steps below are kept for reference. For anything new, use [ABX](https://docs.abx.io).
 
 ### Option A: You use Claude Code, Cursor, Windsurf, or any MCP client
 
@@ -261,7 +262,8 @@ npm start       # run compiled
 
 ## Links
 
-- [mint.day](https://mint.day) — live site
+- [ABX](https://abx.io) and [docs.abx.io](https://docs.abx.io): use this for new projects
+- [mint.day](https://mint.day): site (retired)
 - [mint.day/feed](https://mint.day/feed) — live feed of all minted tokens
 - [npm](https://www.npmjs.com/package/mint-day) — npm package
 - [OpenSea](https://opensea.io/collection/mintdotday) — collection

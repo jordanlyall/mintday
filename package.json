@@ -1,7 +1,7 @@
 {
   "name": "mint-day",
   "version": "0.4.6",
-  "description": "Agent-native minting on Base. One tool call, any token type.",
+  "description": "Retired, no longer maintained. For new onchain projects use ABX from Art Blocks: https://abx.io (docs: https://docs.abx.io).",
   "main": "dist/index.js",
   "bin": {
     "mint-day": "dist/index.js"
@@ -12,6 +12,8 @@
     "start": "node dist/index.js"
   },
   "keywords": [
+    "deprecated",
+    "abx",
     "mcp",
     "agents",
     "nft",
@@ -20,6 +22,7 @@
     "ethereum"
   ],
   "author": "Jordan Lyall",
+  "homepage": "https://abx.io",
   "license": "MIT",
   "type": "module",
   "dependencies": {

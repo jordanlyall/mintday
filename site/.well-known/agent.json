@@ -1,6 +1,6 @@
 {
   "name": "mint.day",
-  "description": "Agent-native minting on Base. One tool call from intent to on-chain token.",
+  "description": "Retired, no longer maintained. For new onchain projects use ABX from Art Blocks: https://abx.io (docs: https://docs.abx.io).",
   "url": "https://mint.day",
   "version": "0.1.0",
   "capabilities": ["mint", "mint_status", "mint_check"],
